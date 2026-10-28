@@ -40,10 +40,15 @@ document.querySelectorAll('.wish-card').forEach(card => {
     });
 });
 
-// ===== حالت شب/روز =====
+// ===== حالت شب/روز (پیش‌فرض: تاریک) =====
 const themeBtn = document.getElementById('themeBtn');
 const savedTheme = localStorage.getItem('theme');
-if (savedTheme === 'dark') {
+
+// اگه کاربر قبلاً "روشن" انتخاب کرده بود → روشن، وگرنه تاریک (پیش‌فرض)
+if (savedTheme === 'light') {
+    document.body.classList.remove('dark');
+    themeBtn.textContent = '🌙';
+} else {
     document.body.classList.add('dark');
     themeBtn.textContent = '☀️';
 }
@@ -55,57 +60,77 @@ themeBtn.addEventListener('click', () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     showToast(isDark ? 'حالت شب فعال شد 🌙' : 'حالت روز فعال شد ☀️');
 });
-
-// ===== پخش موسیقی (بدون فایل، با Web Audio) =====
+// ===== پخش موسیقی (فایل صوتی دلخواه) =====
 const musicBtn = document.getElementById('musicBtn');
-let audioCtx = null;
+
+// 👇👇👇 نام فایل آهنگ خودت رو اینجا بذار 👇👇👇
+const music = new Audio('music.mp3');
+music.loop = true;      // تکرار خودکار
+music.volume = 0.6;     // صدا (۰ تا ۱)
+
 let isPlaying = false;
-let melodyInterval = null;
-
-function playSoftMelody() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
-
-    function playNote() {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = notes[Math.floor(Math.random() * notes.length)];
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1.5);
-    }
-
-    playNote();
-    melodyInterval = setInterval(playNote, 900);
-}
-
-function stopSoftMelody() {
-    if (melodyInterval) {
-        clearInterval(melodyInterval);
-        melodyInterval = null;
-    }
-}
 
 musicBtn.addEventListener('click', () => {
-    isPlaying = !isPlaying;
-    if (isPlaying) {
-        playSoftMelody();
-        musicBtn.classList.add('playing');
-        musicBtn.textContent = '⏸️';
-        showToast('موسیقی پخش شد 🎵');
+    if (!isPlaying) {
+        music.play()
+            .then(() => {
+                isPlaying = true;
+                musicBtn.classList.add('playing');
+                musicBtn.textContent = '⏸️';
+                showToast('موسیقی پخش شد 🎵');
+            })
+            .catch(err => {
+                console.error('خطا در پخش:', err);
+                showToast('فایل موسیقی پیدا نشد ❌');
+            });
     } else {
-        stopSoftMelody();
+        music.pause();
+        isPlaying = false;
         musicBtn.classList.remove('playing');
         musicBtn.textContent = '🎵';
         showToast('موسیقی متوقف شد 🔇');
     }
+});
+
+// وقتی آهنگ تموم شد (اختیاری - چون loop روشنه)
+music.addEventListener('ended', () => {
+    isPlaying = false;
+    musicBtn.classList.remove('playing');
+    musicBtn.textContent = '🎵';
+});
+
+// قطع آهنگ هنگام بستن صفحه
+window.addEventListener('beforeunload', () => {
+    music.pause();
+});
+
+// ===== دکمه "بیشتر بدونم" - اسکرول + قلب + موسیقی =====
+const scrollBtn = document.getElementById('scrollBtn');
+
+scrollBtn.addEventListener('click', () => {
+    // افکت فشردن دکمه
+    scrollBtn.style.transform = 'scale(0.95)';
+    setTimeout(() => scrollBtn.style.transform = '', 150);
+
+    // ۱. انفجار قلب‌ها 💖
+    burstHearts();
+
+    // ۲. اسکرول نرم به بخش درباره من
+    setTimeout(() => scrollToSection('about'), 200);
+
+    // ۳. پخش موسیقی (اگه قبلاً پخش نشده) 🎵
+    if (!isPlaying) {
+        music.play().then(() => {
+            isPlaying = true;
+            musicBtn.classList.add('playing');
+            musicBtn.textContent = '⏸️';
+        }).catch(() => {
+            // اگه فایل موسیقی نبود، بی‌صدا رد شه
+        });
+    }
+
+    // ۴. پیام خوش‌آمد 💫
+    showToast('قلبم برات می‌تپه 💖');
 });
 
 // ===== گالری و لایت‌باکس (نسخه عکس) =====

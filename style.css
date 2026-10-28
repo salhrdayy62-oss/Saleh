@@ -613,3 +613,36 @@ footer {
         left: 15px;
     }
 }
+
+/* ===== دکمه با ضربان قلب 💓 ===== */
+.heartbeat-btn {
+    animation: heartBeat 1.5s ease-in-out infinite;
+    transform-origin: center;
+}
+
+@keyframes heartBeat {
+    0%   { transform: scale(1); }
+    14%  { transform: scale(1.12); }
+    28%  { transform: scale(1); }
+    42%  { transform: scale(1.12); }
+    70%  { transform: scale(1); }
+    100% { transform: scale(1); }
+}
+
+/* وقتی موس روشه، ضربان متوقف شه (که با hover تداخل نکنه) */
+.heartbeat-btn:hover {
+    animation-play-state: paused;
+}
+
+/* اگه خواستی دکمه یه هاله قرمز هم داشته باشه */
+.heartbeat-btn.glow {
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7);
+    animation: heartBeat 1.5s ease-in-out infinite,
+               glowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.6); }
+    70%  { box-shadow: 0 0 0 20px rgba(230, 57, 70, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0); }
+}
